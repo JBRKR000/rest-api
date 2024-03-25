@@ -2,10 +2,11 @@ package com.project.repository;
 
 import com.project.model.Projekt;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.awt.print.Pageable;
+
 import java.util.List;
 
 //jest to interfejs który implementuje metody bazodanowe do naszej aplikacji
