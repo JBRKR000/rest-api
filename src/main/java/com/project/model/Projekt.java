@@ -1,60 +1,77 @@
 package com.project.model;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
-@Entity //adnotacja informująca że jest to klasa encyjna
-@Table(name="projekt", indexes = {
-  @Index(name="idx_nazwa",columnList = "nazwa"),
-  @Index(name="idx_projekt_id", columnList = "projekt_id") // indeksowanie kolumn własnymi indeksami(?)
-})
+@Entity
+@Table(name="projekt")
 public class Projekt {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //baza danych powinna generować wartość klucza głównego
-    @Column(name="projekt_id") //tylko jeżeli nazwa kolumny w bazie danych ma być inna od nazwy zmiennej
-    private Integer projektId; //kolumna o nazwie "projekt_id" ma być mapowana do zmiennej Integer "projektId"
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="projekt_id")
+    private Integer projektId;
+
     @NotBlank(message = "Pole nazwa nie może być puste!")
-    @Size(min = 3, max = 50, message = "Nazwa musi zawierać od {min} do {max} znaków!")
+    @Size(min = 3, max = 50, message = "Pole nazwa musi zawierać od {min} do {max} znaków!")
     @Column(nullable = false, length = 50)
-    private String nazwa; //jeśli nazwa kolumny jest taka sama jak nazwa zmiennej to nie trzeba robić adnotacji
+    private String nazwa;
 
-
-    @Size(max = 50, message = "Opis musi zawierać do {max} znaków!")
-    @Column(length = 1000, nullable = true)
+    @Column(length = 1000)
     private String opis;
 
-    @NotBlank(message = "Pole dataCzasUtworzenia nie może być puste!")
-    @CreationTimestamp //Ta adnotacja pozwala na automatyczne przypisywanie daty i czasu podczas tworzenia rekordu
-    @Column(name="dataczas_utworzenia",nullable = false)
+    @CreationTimestamp
+    @Column(name = "dataczas_utworzenia", nullable = false, updatable = false)
     private LocalDateTime dataCzasUtworzenia;
 
-    @CreationTimestamp
-    @Column(name="data_oddania", nullable = true)
-    private LocalDateTime dataCzasOddania;
+    @UpdateTimestamp
+    @Column(name = "dataczas_modyfikacji", nullable = false)
+    private LocalDateTime dataCzasModyfikacji;
 
-
-    @OneToMany(mappedBy="projekt") //określa że pole Zadanie jest w połączone w formie jeden do wielu z polem projekt w
+    @OneToMany(mappedBy = "projekt")
     @JsonIgnoreProperties({"projekt"})
-    // klasie Projekt
     private List<Zadanie> zadania;
 
     @ManyToMany
     @JoinTable(name = "projekt_student",
-            joinColumns = {@JoinColumn(name="projekt_id")},
-            inverseJoinColumns = {@JoinColumn(name="student_id")})
+            joinColumns = {@JoinColumn(name = "projekt_id")},
+            inverseJoinColumns = {@JoinColumn(name = "student_id")})
     private Set<Student> studenci;
 
-    public Projekt(){
-        //PUSTY
-    }
-    public Projekt(String nazwa, String opis){
+    public Projekt() {}
+
+    public Projekt(String nazwa, String opis) {
         this.nazwa = nazwa;
         this.opis = opis;
+    }
+
+    public Projekt(String nazwa, String opis, LocalDate dataUtworzenia) {
+        this.nazwa = nazwa;
+        this.opis = opis;
+        this.dataCzasUtworzenia = dataUtworzenia.atStartOfDay();
+        this.dataCzasModyfikacji = LocalDateTime.now();
+    }
+
+    public Projekt(Integer projektId, String nazwa, String opis, LocalDate dataUtworzenia) {
+        this.projektId = projektId;
+        this.nazwa = nazwa;
+        this.opis = opis;
+        this.dataCzasUtworzenia = dataUtworzenia.atStartOfDay();
+        this.dataCzasModyfikacji = LocalDateTime.now();
+    }
+
+    public Projekt(int i, String nazwa2, String opis2, LocalDateTime now, LocalDate of) {
     }
 
     public Integer getProjektId() {
@@ -89,6 +106,14 @@ public class Projekt {
         this.dataCzasUtworzenia = dataCzasUtworzenia;
     }
 
+    public LocalDateTime getDataCzasModyfikacji() {
+        return dataCzasModyfikacji;
+    }
+
+    public void setDataCzasModyfikacji(LocalDateTime dataCzasModyfikacji) {
+        this.dataCzasModyfikacji = dataCzasModyfikacji;
+    }
+
     public List<Zadanie> getZadania() {
         return zadania;
     }
@@ -103,13 +128,5 @@ public class Projekt {
 
     public void setStudenci(Set<Student> studenci) {
         this.studenci = studenci;
-    }
-
-    public LocalDateTime getDataCzasOddania() {
-        return dataCzasOddania;
-    }
-
-    public void setDataCzasOddania(LocalDateTime dataCzasOddania) {
-        this.dataCzasOddania = dataCzasOddania;
     }
 }
